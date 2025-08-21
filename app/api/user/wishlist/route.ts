@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware, AuthenticatedRequest } from '@/lib/authMiddleware'
-import User from '@/models/User'
-import Product from '@/models/Product'
-import { clientPromise } from '@/lib/mongodb'
+
+// In-memory store for wishlist (for development only)
+const wishlistStore: Record<string, string[]> = {}
 
 // GET user's wishlist
 export const GET = authMiddleware(async (request: AuthenticatedRequest) => {
@@ -13,15 +13,9 @@ export const GET = authMiddleware(async (request: AuthenticatedRequest) => {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
     }
 
-    await clientPromise
-
-    const user = await User.findById(userId).populate('wishlist')
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ wishlist: user.wishlist })
+    // Return user's wishlist or empty array if not exists
+    const wishlist = wishlistStore[userId] || []
+    return NextResponse.json({ wishlist })
   } catch (error) {
     console.error('Fetch wishlist error:', error)
     return NextResponse.json(
