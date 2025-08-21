@@ -14,27 +14,71 @@ const mockProducts = [
     images: [{ url: '/products/tshirts.jpg', alt: 'Classic White T-Shirt' }],
     sizes: [{ size: 'S', stock: 10 }, { size: 'M', stock: 15 }, { size: 'L', stock: 20 }, { size: 'XL', stock: 8 }],
     colors: ['white'],
-    stock: 100
+    stock: 100,
+    ratings: {
+      average: 4.5,
+      count: 128
+    },
+    createdAt: new Date('2023-01-15'),
+    updatedAt: new Date('2023-01-15')
   },
   {
     _id: '2',
-    title: 'Slim Fit Jeans',
-    description: 'Classic blue jeans with a modern slim fit.',
-    price: 59.99,
-    comparePrice: 79.99,
+    title: 'Cozy Hoodie',
+    description: 'Warm and comfortable hoodie for casual wear.',
+    price: 49.99,
+    comparePrice: 64.99,
+    category: 'hoodies',
+    featured: true,
+    active: true,
+    images: [{ url: '/products/hoodie.jpg', alt: 'Cozy Hoodie' }],
+    sizes: [
+      { size: 'S', stock: 5 }, 
+      { size: 'M', stock: 8 }, 
+      { size: 'L', stock: 10 },
+      { size: 'XL', stock: 6 }
+    ],
+    colors: ['black', 'gray'],
+    stock: 30
+  },
+  {
+    _id: '3',
+    title: 'Athletic Joggers',
+    description: 'Comfortable joggers for both workouts and casual wear.',
+    price: 44.99,
+    comparePrice: 59.99,
     category: 'pants',
     featured: true,
     active: true,
-    images: [{ url: '/products/hoodie.jpg', alt: 'Slim Fit Jeans' }],
+    images: [{ url: '/products/joggers.jpg', alt: 'Athletic Joggers' }],
     sizes: [
-      { size: '28', stock: 5 }, 
-      { size: '30', stock: 8 }, 
-      { size: '32', stock: 10 },
-      { size: '34', stock: 6 },
-      { size: '36', stock: 4 }
+      { size: 'S', stock: 8 }, 
+      { size: 'M', stock: 10 }, 
+      { size: 'L', stock: 12 },
+      { size: 'XL', stock: 7 }
     ],
-    colors: ['blue'],
-    stock: 50
+    colors: ['black', 'navy'],
+    stock: 40
+  },
+  {
+    _id: '4',
+    title: 'Classic Sneakers',
+    description: 'Versatile sneakers for everyday comfort and style.',
+    price: 79.99,
+    comparePrice: 99.99,
+    category: 'shoes',
+    featured: true,
+    active: true,
+    images: [{ url: '/products/sneakers.jpg', alt: 'Classic Sneakers' }],
+    sizes: [
+      { size: '7', stock: 4 }, 
+      { size: '8', stock: 6 }, 
+      { size: '9', stock: 8 },
+      { size: '10', stock: 5 },
+      { size: '11', stock: 3 }
+    ],
+    colors: ['white', 'black'],
+    stock: 25
   },
   // Add more mock products as needed
 ]

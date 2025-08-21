@@ -37,7 +37,9 @@ const ProductDetailsPage = () => {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState<string>('')
+  const [mainImage, setMainImage] = useState('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
@@ -48,6 +50,66 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     if (id) {
       const fetchProductAndWishlist = async () => {
+        try {
+          setLoading(true)
+          setError(null)
+          
+          // Fetch product details
+          const productRes = await fetch(`/api/products/${id}`)
+          if (!productRes.ok) {
+            throw new Error('Failed to fetch product')
+          }
+          const productData = await productRes.json()
+          
+          if (!productData) {
+            throw new Error('Product not found')
+          }
+          
+          // Set default selected color and size if available
+          if (productData.colors?.length > 0) {
+            setSelectedColor(productData.colors[0])
+          }
+          if (productData.sizes?.length > 0) {
+            const availableSize = productData.sizes.find((s: any) => s.stock > 0)
+            if (availableSize) {
+              setSelectedSize(availableSize.size)
+            }
+          }
+          
+          // Set main image
+          if (productData.images?.length > 0) {
+            setMainImage(
+              typeof productData.images[0] === 'string' 
+                ? productData.images[0] 
+                : productData.images[0].url
+            )
+          }
+          
+          setProduct(productData)
+          
+          // Check if product is in wishlist
+          if (user) {
+            try {
+              const wishlistRes = await fetch('/api/user/wishlist', {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+              })
+              if (wishlistRes.ok) {
+                const wishlist = await wishlistRes.json()
+                setIsWishlisted(wishlist.some((item: any) => item._id === id))
+              }
+            } catch (wishlistError) {
+              console.error('Error checking wishlist:', wishlistError)
+            }
+          }
+        } catch (err: any) {
+          console.error('Error fetching product:', err)
+          setError(err.message || 'Failed to load product')
+          toast.error('Failed to load product details')
+        } finally {
+          setLoading(false)
+        }
         try {
           setLoading(true)
           // Fetch product details
@@ -89,28 +151,33 @@ const ProductDetailsPage = () => {
       toast.error('Please select a size.')
       return
     }
+
     if (!selectedColor) {
-      toast.error('Please select a color.')
+      toast.error('Please select a color')
       return
     }
 
-    const sizeInfo = product.sizes.find(s => s.size === selectedSize)
-    if (!sizeInfo || sizeInfo.stock < quantity) {
-      toast.error(`Not enough stock for selected size. Available: ${sizeInfo?.stock || 0}`)
-      return
-    }
+    const sizeObj = product.sizes.find((s: any) => s.size === selectedSize)
+    const stock = sizeObj?.stock || 0
+
+    const imageUrl = Array.isArray(product.images) && product.images.length > 0
+      ? typeof product.images[0] === 'string'
+        ? product.images[0]
+        : product.images[0].url
+      : ''
 
     addItem({
       id: product._id,
       title: product.title,
       price: product.price,
-      image: product.images[0]?.url || '/placeholder-product.jpg',
+      image: imageUrl,
       size: selectedSize,
       color: selectedColor,
       quantity: quantity,
-      stock: sizeInfo.stock,
+      stock: stock
     })
-    toast.success(`${quantity} x ${product.title} added to cart!`)
+
+    toast.success('Added to cart!')
   }
 
   const handleWishlistToggle = async () => {
@@ -145,56 +212,23 @@ const ProductDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-grow flex items-center justify-center py-16">
-          <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto px-4 w-full">
-            <div className="aspect-square bg-gray-200 rounded-lg"></div>
-            <div className="space-y-6">
-              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              <div className="h-12 bg-gray-200 rounded w-full"></div>
-              <div className="h-12 bg-gray-200 rounded w-full"></div>
-            </div>
-          </div>
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="flex-grow flex items-center justify-center py-16">
-          <div className="text-center text-red-500">
-            <h1 className="text-2xl font-bold mb-4">Error: {error}</h1>
-            <p>Could not load product details. Please try again later.</p>
-            <Link href="/" className="mt-4 inline-flex items-center text-black hover:underline">
-              <ArrowLeft size={16} className="mr-2" /> Back to Home
-            </Link>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-grow flex items-center justify-center py-16">
-          <div className="text-center text-gray-600">
-            <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-            <p>The product you are looking for does not exist.</p>
-            <Link href="/" className="mt-4 inline-flex items-center text-black hover:underline">
-              <ArrowLeft size={16} className="mr-2" /> Back to Home
-            </Link>
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h2>
+          <p className="text-gray-600 mb-6">The product you're looking for doesn't exist or has been removed.</p>
+          <Link href="/" className="text-primary hover:underline flex items-center">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shop
+          </Link>
         </div>
         <Footer />
       </div>
@@ -270,16 +304,18 @@ const ProductDetailsPage = () => {
               </div>
 
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="flex">
+                <div className="flex items-center mb-4">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       size={18}
-                      className={i < Math.round(product.ratings.average) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}
+                      className={i < Math.round(product.ratings?.average || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}
                     />
                   ))}
+                  <span className="ml-2 text-sm text-gray-500">
+                    ({product.ratings?.count || 0} reviews)
+                  </span>
                 </div>
-                <span>({product.ratings.count} reviews)</span>
               </div>
 
               {/* Description */}
