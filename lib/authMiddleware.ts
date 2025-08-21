@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import User from '@/models/User'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
