@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb'
 import { verifyToken } from '@/lib/auth'
 import User from '@/models/User'
 
@@ -23,7 +23,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    await clientPromise
+    const client = await clientPromise
+    if (!client) {
+      return NextResponse.json(
+        { error: 'Database connection not available' },
+        { status: 500 }
+      )
+    }
 
     const user = await User.findById(decoded.userId).select('-password')
     if (!user) {
