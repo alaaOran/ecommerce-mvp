@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientPromise } from '@/lib/mongodb'
 import { comparePasswords, generateToken } from '@/lib/auth'
 import User from '@/models/User'
+import { clientPromise } from '@/lib/mongodb'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +14,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const client = await clientPromise
-    if (!client) {
-      return NextResponse.json(
-        { error: 'Database connection not available' },
-        { status: 500 }
-      )
-    }
-
+    // Wait for MongoDB connection
+    await clientPromise
+    
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() })
     if (!user) {

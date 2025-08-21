@@ -1,46 +1,43 @@
 import { MongoClient, ServerApiVersion, Db } from 'mongodb'
 
-let client: MongoClient | null = null
-let db: Db | null = null
-let clientPromise: Promise<MongoClient> | null = null
-
-if (process.env.MONGODB_URI) {
-  const uri = process.env.MONGODB_URI
-  
-  if (process.env.NODE_ENV === 'development') {
-    // In development mode, use a global variable to preserve the connection across module reloads
-    const globalWithMongo = global as typeof globalThis & {
-      _mongoClientPromise?: Promise<MongoClient>
-    }
-
-    if (!globalWithMongo._mongoClientPromise) {
-      client = new MongoClient(uri, {
-        serverApi: {
-          version: ServerApiVersion.v1,
-          strict: true,
-          deprecationErrors: true,
-        },
-      })
-      globalWithMongo._mongoClientPromise = client.connect()
-    }
-    clientPromise = globalWithMongo._mongoClientPromise
-  } else {
-    // In production mode, avoid using a global variable
-    client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      },
-    })
-    clientPromise = client.connect()
-  }
-
-  if (client) {
-    db = client.db()
-  }
-} else if (process.env.NODE_ENV !== 'test') {
-  console.warn('MONGODB_URI not found in environment variables. Some features may not work.')
+if (!process.env.MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable')
 }
 
-export { client, db, clientPromise }
+const uri = process.env.MONGODB_URI
+const options = {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+}
+
+let client: MongoClient
+let clientPromise: Promise<MongoClient>
+let db: Db
+
+declare global {
+  var _mongoClientPromise: Promise<MongoClient> | undefined
+}
+
+if (process.env.NODE_ENV === 'development') {
+  // In development mode, use a global variable to preserve the connection across module reloads
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(uri, options)
+    global._mongoClientPromise = client.connect()
+  }
+  clientPromise = global._mongoClientPromise!
+} else {
+  // In production mode, don't use a global variable
+  client = new MongoClient(uri, options)
+  clientPromise = client.connect()
+}
+
+// Initialize db when client connects
+clientPromise.then(c => {
+  db = c.db()
+})
+
+// Export the client and db
+export { clientPromise, db }

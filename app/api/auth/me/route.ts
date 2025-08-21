@@ -23,13 +23,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const client = await clientPromise
-    if (!client) {
-      return NextResponse.json(
-        { error: 'Database connection not available' },
-        { status: 500 }
-      )
-    }
+    // Wait for MongoDB connection
+    await clientPromise
 
     const user = await User.findById(decoded.userId).select('-password')
     if (!user) {

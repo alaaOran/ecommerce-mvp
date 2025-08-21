@@ -21,13 +21,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const client = await clientPromise
-    if (!client) {
-      return NextResponse.json(
-        { error: 'Database connection not available' },
-        { status: 500 }
-      )
-    }
+    // Wait for MongoDB connection
+    await clientPromise
 
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() })
