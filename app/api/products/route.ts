@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
-import { promises as fs } from 'fs'
+
+// Mock product data
+const mockProducts = [
+  {
+    id: '1',
+    name: 'Classic White T-Shirt',
+    description: 'A comfortable and stylish white t-shirt for everyday wear.',
+    price: 24.99,
+    category: 't-shirts',
+    featured: true,
+    active: true,
+    images: ['/products/tshirt.jpg'],
+    sizes: ['S', 'M', 'L', 'XL'],
+    colors: ['white'],
+    stock: 100
+  },
+  {
+    id: '2',
+    name: 'Slim Fit Jeans',
+    description: 'Classic blue jeans with a modern slim fit.',
+    price: 59.99,
+    category: 'pants',
+    featured: true,
+    active: true,
+    images: ['/products/jeans.jpg'],
+    sizes: ['28', '30', '32', '34', '36'],
+    colors: ['blue'],
+    stock: 50
+  },
+  // Add more mock products as needed
+]
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +40,8 @@ export async function GET(request: NextRequest) {
     const search = (searchParams.get('search') || '').trim().toLowerCase()
     const featured = searchParams.get('featured') === 'true'
 
-    const filePath = path.join(process.cwd(), 'data', 'products.json')
-    const json = await fs.readFile(filePath, 'utf8')
-    const allProducts = JSON.parse(json) as any[]
+    // Use mock products data
+    const allProducts = mockProducts
 
     // Filter in-memory
     let filtered = allProducts.filter(p => p.active !== false)
@@ -28,18 +56,16 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       filtered = filtered.filter(p => {
-        const hay = `${p.title} ${p.description} ${(p.tags || []).join(' ')}`.toLowerCase()
-        return hay.includes(search)
+        return (
+          p.name.toLowerCase().includes(search) ||
+          p.description.toLowerCase().includes(search) ||
+          p.category.toLowerCase().includes(search)
+        )
       })
     }
 
-    // Sort newest first by a pseudo timestamp if present; fallback to title
-    filtered.sort((a, b) => {
-      const at = a.updatedAt || a.createdAt || 0
-      const bt = b.updatedAt || b.createdAt || 0
-      if (at !== bt) return bt - at
-      return String(a.title).localeCompare(String(b.title))
-    })
+    // Sort by product name
+    filtered.sort((a, b) => a.name.localeCompare(b.name))
 
     const total = filtered.length
     const skip = (page - 1) * limit
