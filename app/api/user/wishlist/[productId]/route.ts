@@ -3,7 +3,7 @@ import { authMiddleware, AuthenticatedRequest } from '@/lib/authMiddleware'
 import User from '@/models/User'
 import mongoose from 'mongoose'
 import Product from '@/models/Product'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb'
 
 // POST: Add product to wishlist
 export const POST = authMiddleware(async (request: AuthenticatedRequest, { params }: { params: { productId: string } }) => {
