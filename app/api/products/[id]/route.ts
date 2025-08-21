@@ -3,28 +3,36 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mock product data
 const mockProducts = [
   {
-    id: '1',
-    name: 'Classic White T-Shirt',
+    _id: '1',
+    title: 'Classic White T-Shirt',
     description: 'A comfortable and stylish white t-shirt for everyday wear.',
     price: 24.99,
+    comparePrice: 29.99,
     category: 't-shirts',
     featured: true,
     active: true,
-    images: ['/products/tshirt.jpg'],
-    sizes: ['S', 'M', 'L', 'XL'],
+    images: [{ url: '/products/tshirts.jpg', alt: 'Classic White T-Shirt' }],
+    sizes: [{ size: 'S', stock: 10 }, { size: 'M', stock: 15 }, { size: 'L', stock: 20 }, { size: 'XL', stock: 8 }],
     colors: ['white'],
     stock: 100
   },
   {
-    id: '2',
-    name: 'Slim Fit Jeans',
+    _id: '2',
+    title: 'Slim Fit Jeans',
     description: 'Classic blue jeans with a modern slim fit.',
     price: 59.99,
+    comparePrice: 79.99,
     category: 'pants',
     featured: true,
     active: true,
-    images: ['/products/jeans.jpg'],
-    sizes: ['28', '30', '32', '34', '36'],
+    images: [{ url: '/products/hoodie.jpg', alt: 'Slim Fit Jeans' }],
+    sizes: [
+      { size: '28', stock: 5 }, 
+      { size: '30', stock: 8 }, 
+      { size: '32', stock: 10 },
+      { size: '34', stock: 6 },
+      { size: '36', stock: 4 }
+    ],
     colors: ['blue'],
     stock: 50
   }
@@ -36,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
 
     // Find product in mock data
-    const product = mockProducts.find(p => p.id === id)
+    const product = mockProducts.find(p => p._id === id)
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })

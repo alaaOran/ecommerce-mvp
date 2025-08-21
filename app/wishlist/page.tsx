@@ -46,7 +46,7 @@ const WishlistPage = () => {
         throw new Error('Failed to fetch wishlist')
       }
       const data = await res.json()
-      setWishlistProducts(data.wishlist)
+      setWishlistProducts(data.wishlist || [])
     } catch (err: any) {
       setError(err.message)
       toast.error('Failed to load wishlist.')
@@ -70,13 +70,19 @@ const WishlistPage = () => {
       const res = await fetch(`/api/user/wishlist/${productId}`, {
         method: 'DELETE',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       })
 
+      const data = await res.json()
+      
       if (!res.ok) {
-        throw new Error('Failed to remove from wishlist')
+        throw new Error(data.error || 'Failed to remove from wishlist')
       }
+      
+      // Update the wishlist with the response data
+      setWishlistProducts(data.wishlist || [])
       toast.success('Product removed from wishlist!')
       fetchWishlist() // Re-fetch wishlist to update UI
     } catch (err: any) {
