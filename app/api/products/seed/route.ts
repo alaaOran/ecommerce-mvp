@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb'
 import Product from '@/models/Product'
 
 // Convenience seeder to populate 4 demo products with your images.

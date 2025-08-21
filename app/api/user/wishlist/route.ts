@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware, AuthenticatedRequest } from '@/lib/authMiddleware'
 import User from '@/models/User'
 import Product from '@/models/Product'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb'
 
 // GET user's wishlist
 export const GET = authMiddleware(async (request: AuthenticatedRequest) => {
