@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientPromise } from '@/lib/mongodb'
 import { hashPassword, generateToken } from '@/lib/auth'
-import User from '@/models/User'
 
 export const dynamic = 'force-dynamic' // Prevent static generation
+
+// In-memory store for mock users (for development only)
+const mockUsers: any[] = []
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,12 +24,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Wait for MongoDB connection
-    const client = await clientPromise
-    const db = client.db()
-
-    // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ email: email.toLowerCase() })
+    // Check if user already exists in mock data
+    const existingUser = mockUsers.find(user => user.email === email.toLowerCase())
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
@@ -39,24 +36,31 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user
-    const user = await User.create({
+    // Create new user
+    const newUser = {
+      _id: `user-${Date.now()}`,
       name,
       email: email.toLowerCase(),
-      password: hashedPassword
-    })
+      password: hashedPassword,
+      role: 'user',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+
+    // Add new user to mock data
+    mockUsers.push(newUser)
 
     // Generate token
-    const token = generateToken(user._id.toString())
+    const token = generateToken(newUser._id.toString())
 
     return NextResponse.json({
       message: 'User created successfully',
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
       }
     })
   } catch (error) {

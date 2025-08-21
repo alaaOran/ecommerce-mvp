@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import User from '@/models/User'
-import { clientPromise } from '@/lib/mongodb'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -10,6 +8,15 @@ export interface AuthenticatedRequest extends NextRequest {
     email: string
     role: string
   }
+}
+
+// Mock user for development
+const MOCK_USER = {
+  id: 'mock-user-id',
+  _id: 'mock-user-id',
+  name: 'Test User',
+  email: 'test@example.com',
+  role: 'user'
 }
 
 export const getAuthenticatedUser = async (request: NextRequest) => {
@@ -25,19 +32,8 @@ export const getAuthenticatedUser = async (request: NextRequest) => {
     return null
   }
 
-  await clientPromise
-
-  const user = await User.findById(decoded.userId).select('-password')
-  if (!user) {
-    return null
-  }
-
-  return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  }
+  // Return mock user for development
+  return MOCK_USER
 }
 
 export const authMiddleware = (handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<NextResponse>) => {

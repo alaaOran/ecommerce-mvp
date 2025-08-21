@@ -17,8 +17,6 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "framer-motion": "^10.16.4",
-    "mongodb": "^6.1.0",
-    "mongoose": "^7.5.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^13.6.0",

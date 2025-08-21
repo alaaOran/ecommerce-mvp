@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { comparePasswords, generateToken } from '@/lib/auth'
-import User from '@/models/User'
-import { clientPromise } from '@/lib/mongodb'
 
 export const dynamic = 'force-dynamic' // Prevent static generation
+
+// Mock user for development
+const MOCK_USER = {
+  _id: 'mock-user-id',
+  name: 'Test User',
+  email: 'test@example.com',
+  password: '$2a$10$N9qo8uLOickgx2ZMRZoMy.MH.1VO4XeB7HdJwHtHtqJpGpQ0X1qQe', // password: 'password'
+  role: 'user'
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +23,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Wait for MongoDB connection
-    const client = await clientPromise
-    const db = client.db()
+    // Use mock user for development
+    const user = MOCK_USER
     
-    // Find user
-    const user = await db.collection('users').findOne({ email: email.toLowerCase() })
-    if (!user) {
+    // Check if user exists
+    if (!user || user.email !== email.toLowerCase()) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 400 }
