@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientPromise } from '@/lib/mongodb'
 import { verifyToken } from '@/lib/auth'
-import User from '@/models/User'
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,23 +21,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Wait for MongoDB connection
-    await clientPromise
-
-    const user = await User.findById(decoded.userId).select('-password')
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+    // Return mock user data
+    const mockUser = {
+      id: 'mock-user-id',
+      name: 'Test User',
+      email: 'test@example.com',
+      role: 'user',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
 
-    return NextResponse.json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    })
+    return NextResponse.json(mockUser)
   } catch (error) {
     console.error('Auth check error:', error)
     return NextResponse.json(
