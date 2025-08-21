@@ -3,6 +3,8 @@ import { clientPromise } from '@/lib/mongodb'
 import { hashPassword, generateToken } from '@/lib/auth'
 import User from '@/models/User'
 
+export const dynamic = 'force-dynamic' // Prevent static generation
+
 export async function POST(request: NextRequest) {
   try {
     const { name, email, password } = await request.json()
@@ -22,10 +24,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Wait for MongoDB connection
-    await clientPromise
+    const client = await clientPromise
+    const db = client.db()
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() })
+    const existingUser = await db.collection('users').findOne({ email: email.toLowerCase() })
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
